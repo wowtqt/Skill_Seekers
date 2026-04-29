@@ -5,13 +5,40 @@ All notable changes to Skill Seeker will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-## [3.5.0] - 2026-04-01
-
-**Theme:** Agent-agnostic architecture, marketplace pipeline, smart SPA discovery, dynamic routing refactor, and removal of artificial limits. 60+ files changed across the codebase (#336).
+## [3.5.1] - 2026-04-12
 
 ### Added
+- **Centralized `defaults.json` config** — single source of truth for all default values (`rate_limit`, `max_pages`, `workers`, `async_mode`, enhancement, analysis, RAG settings). New `defaults.py` loader module. All 15+ files that previously hardcoded defaults now read from this file (#356)
+- **Low-signal code snippet filtering** — `_is_low_signal_code_snippet()` filters junk patterns like bare `True`, `options`, single identifiers from quick references (#360)
+- **Pattern description normalization** — `_normalize_pattern_description()` cleans boilerplate prefixes and truncates to first meaningful sentence (#360)
+- **Example language priority ranking** — `_example_language_priority()` ranks Python > Bash > JSON > etc. for SKILL.md examples (#360)
+- **`checkpoint_exists()` method** on `DocToSkillConverter` — was called but never defined (#360)
+- **Unified config source normalization** — `DocToSkillConverter.__init__` merges fields from `sources[0]` into flat config for compatibility (#360)
+- **`display_name` support** in SKILL.md generation — produces cleaner titles and slugs (#360)
+- **New tests**: `test_doc_scraper_entrypoint.py` (regression for `_run_scraping`), quick-reference quality tests, docs-only compatibility tests, nested reference coverage tests (#360)
+
+### Changed
+- **`max_pages` default is now unlimited (`-1`)** — the scraper fetches all pages unless the user explicitly sets `--max-pages`. Previously defaulted to 500 (#356)
+- **`--no-rate-limit` flag now works** — was defined in CLI arguments but never consumed by `ExecutionContext` (#356)
+- **`constants.py` reads from `defaults.json`** — no longer contains hardcoded magic numbers (#356)
+- **`ExecutionContext.ScrapingSettings`** — `rate_limit` and `max_pages` now use real defaults instead of `None`, preventing None-poisoning downstream (#356)
+- **SKILL.md frontmatter cleanup** — empty `doc_version:` and `version:` fields are now omitted; placeholder sections removed (#360)
+- **Enhancement routing through platform adaptors** instead of importing nonexistent `enhance_skill_md` helper (#360)
+- **`quality_metrics.py` uses `rglob`** for nested reference directories in unified skills (#360)
+
+### Fixed
+- **`TypeError: '>' not supported between instances of 'NoneType' and 'int'`** — `rate_limit` defaulted to `None` in `ExecutionContext`, which flowed through `config.get("rate_limit", DEFAULT)` (dict.get returns None when the key exists with value None, ignoring the fallback). Fixed in `doc_scraper.py` (sync + async paths), `estimate_pages.py`, and `sync_config.py` (#356, #359)
+- **`discover_urls()` loop never executed with unlimited `max_pages`** — `len(discovered) < -1` is always False. Added unlimited mode guard (#356)
+- **`converter.scrape()` called nonexistent method** in `_run_scraping()` — changed to `converter.scrape_all()` (#360)
+- **None-safety for BeautifulSoup attributes** — `link["href"]`, `sitemap.text`, `meta_desc["content"]` guarded against None XML text nodes (#360)
+- **Python 3.10 compatibility** — backslash in f-string in `quality_metrics.py` not supported before 3.12 (#360)
+
+## [3.5.0] - 2026-04-09
+
+**Theme:** Grand Unification — one command, one interface, direct converters. Agent-agnostic architecture, marketplace pipeline, smart SPA discovery, all content extraction enabled by default. 80+ files changed across the codebase.
+
+### Added
+- **Grand Unification** — unified `create` command as single entry point for all 18 source types with auto-detection, direct converter invocation, and centralized enhancement (#346)
 - **Agent-agnostic `AgentClient` abstraction** — all 5 enhancers now support Claude, Kimi, Codex, Copilot, OpenCode, and custom agents via a unified interface. Auto-detects agent from API keys instead of hardcoding (#336)
 - **Kimi CLI integration** with stdin piping and output parsing (#336)
 - **`MarketplacePublisher`** — publish skills to Claude Code plugin marketplace repos (#336)
@@ -25,10 +52,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Headless browser rendering** (`--browser` flag) — uses Playwright to render JavaScript SPA sites (React, Vue, etc.) that return empty HTML shells. Auto-installs Chromium on first use. Optional dep: `pip install "skill-seekers[browser]"` (#321)
 - **`skill-seekers doctor` command** — 8 diagnostic checks (Python version, package install, git, core/optional deps, API keys, MCP server, output dir) with pass/warn/fail status and `--verbose` flag (#316)
 - **Prompt injection check workflow** — bundled `prompt-injection-check` workflow scans scraped content for injection patterns (role assumption, instruction overrides, delimiter injection, hidden instructions). Added as first stage in `default` and `security-focus` workflows. Flags suspicious content without removing it (#324)
+- **Codex CLI plugin manifest** (`.codex-plugin/plugin.json`) for OpenAI Codex integration (#350)
 - **6 behavioral UML diagrams** — 3 sequence (create pipeline, GitHub+C3.x flow, MCP invocation), 2 activity (source detection, enhancement pipeline), 1 component (runtime dependencies with interface contracts)
 - **134 new tests** — `test_agent_client.py`, `test_config_publisher.py`, `_build_argv` tests. Total: 3194 passed, 39 expected skips (#336)
 
 ### Changed
+- **All content extraction features enabled by default** — pattern detection, test examples, how-to guides, config extraction, and router generation no longer require explicit opt-in
 - **Renamed `claude-enhanced` merge mode to `ai-enhanced`** — backward compatibility alias kept (#336)
 - **Removed 118+ hardcoded Claude references** across 60+ files (#336)
 - **Refactored 5 enhancers** to use `AgentClient` abstraction (#336)
@@ -36,8 +65,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Removed 100-file config extraction limit** (#336)
 - **Fixed unified scraper default `max_pages`** from 100 to 500 (#336)
 - **Centralized enhancement timeouts** to 45min default with unlimited support (#336)
+- **Excluded slow MCP/e2e tests from CI coverage step** to prevent timeout
 
 ### Fixed
+- **`glob('*.md')` replaced with `rglob('*.md')`** in all adaptors — fixes packaging when skills are in nested directories (#349)
 - **`scraped_data` list-vs-dict bug** in conflict detection (#336)
 - **`base_url` passthrough** to doc scraper subprocess (#336)
 - **URL filtering** now uses base directory correctly (#336)

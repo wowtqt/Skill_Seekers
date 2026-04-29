@@ -10,7 +10,7 @@ English | [简体中文](README.zh-CN.md) | [日本語](README.ja.md) | [한국�
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![MCP Integration](https://img.shields.io/badge/MCP-Integrated-blue.svg)](https://modelcontextprotocol.io)
-[![Tested](https://img.shields.io/badge/Tests-2540%2B%20Passing-brightgreen.svg)](tests/)
+[![Tested](https://img.shields.io/badge/Tests-3194%2B%20Passing-brightgreen.svg)](tests/)
 [![Project Board](https://img.shields.io/badge/Project-Board-purple.svg)](https://github.com/users/yusufkaraaslan/projects/2)
 [![PyPI version](https://badge.fury.io/py/skill-seekers.svg)](https://pypi.org/project/skill-seekers/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/skill-seekers.svg)](https://pypi.org/project/skill-seekers/)
@@ -58,6 +58,7 @@ skill-seekers package output/react --target claude      # → Claude AI Skill (Z
 skill-seekers package output/react --target langchain   # → LangChain Documents
 skill-seekers package output/react --target llama-index # → LlamaIndex TextNodes
 skill-seekers package output/react --target cursor      # → .cursorrules
+skill-seekers package output/react --target ibm-bob     # → IBM Bob skill directory
 ```
 
 ### What gets built
@@ -72,6 +73,7 @@ skill-seekers package output/react --target cursor      # → .cursorrules
 | **Haystack Documents** | `--target haystack` | Enterprise RAG pipelines |
 | **Pinecone-ready** (Markdown) | `--target markdown` | Vector upsert |
 | **ChromaDB / FAISS / Qdrant** | `--format chroma/faiss/qdrant` | Local vector DBs |
+| **IBM Bob Skill** (directory) | `--target ibm-bob` | IBM Bob project/global skills |
 | **Cursor** `.cursorrules` | `--target claude` → copy | Cursor IDE AI context |
 | **Windsurf / Cline / Continue** | `--target claude` → copy | VS Code, IntelliJ, Vim |
 
@@ -81,9 +83,9 @@ skill-seekers package output/react --target cursor      # → .cursorrules
 - 🎯 **AI Skill quality** — 500+ line SKILL.md files with examples, patterns, and guides
 - 📊 **RAG-ready chunks** — Smart chunking preserves code blocks and maintains context
 - 🎬 **Videos** — Extract code, transcripts, and structured knowledge from YouTube and local videos
-- 🔄 **Multi-source** — Combine 17 source types (docs, GitHub, PDFs, videos, notebooks, wikis, and more) into one knowledge asset
-- 🌐 **One prep, every target** — Export the same asset to 16 platforms without re-scraping
-- ✅ **Battle-tested** — 2,540+ tests, 24+ framework presets, production-ready
+- 🔄 **Multi-source** — Combine 18 source types (docs, GitHub, PDFs, videos, notebooks, wikis, and more) into one knowledge asset
+- 🌐 **One prep, every target** — Export the same asset to 20 platforms (12 LLM + 8 RAG/vector) without re-scraping
+- ✅ **Battle-tested** — 3,194+ tests, 24+ framework presets, production-ready
 
 ## 🚀 Quick Start (3 Commands)
 
@@ -107,7 +109,7 @@ skill-seekers create https://docs.django.com/ --agent codex
 skill-seekers create https://docs.django.com/ --agent-cmd "my-custom-agent run"
 ```
 
-### Other Sources (17 Supported)
+### Other Sources (18 Supported)
 
 ```bash
 # GitHub repository
@@ -172,7 +174,7 @@ done
 
 ## What is Skill Seekers?
 
-Skill Seekers is the **data layer for AI systems**. It transforms 17 source types—documentation websites, GitHub repositories, PDFs, videos, Jupyter Notebooks, Word/EPUB/AsciiDoc documents, OpenAPI specs, PowerPoint presentations, RSS feeds, man pages, Confluence wikis, Notion pages, Slack/Discord exports, and more—into structured knowledge assets for every AI target:
+Skill Seekers is the **data layer for AI systems**. It transforms 18 source types—documentation websites, GitHub repositories, PDFs, videos, Jupyter Notebooks, Word/EPUB/AsciiDoc documents, OpenAPI specs, PowerPoint presentations, RSS feeds, man pages, Confluence wikis, Notion pages, Slack/Discord exports, and more—into structured knowledge assets for every AI target:
 
 | Use Case | What you get | Examples |
 |----------|-------------|---------|
@@ -742,7 +744,7 @@ skill-seekers install --config react --dry-run
 
 ## 📊 Feature Matrix
 
-Skill Seekers supports **12 LLM platforms**, **17 source types**, and full feature parity across all targets.
+Skill Seekers supports **12 LLM platforms**, **8 RAG/vector targets**, **18 source types**, and full feature parity across all targets.
 
 **Platforms:** Claude AI, Google Gemini, OpenAI ChatGPT, MiniMax AI, Generic Markdown, OpenCode, Kimi (Moonshot AI), DeepSeek AI, Qwen (Alibaba), OpenRouter, Together AI, Fireworks AI
 **Source Types:** Documentation websites, GitHub repos, PDFs, Word (.docx), EPUB, Video, Local codebases, Jupyter Notebooks, Local HTML, OpenAPI/Swagger, AsciiDoc, PowerPoint (.pptx), RSS/Atom feeds, Man pages, Confluence wikis, Notion pages, Slack/Discord chat exports
@@ -941,7 +943,7 @@ The system is organized into **8 core modules** and **5 utility modules** (~200 
 | Module | Purpose | Key Classes |
 |--------|---------|-------------|
 | **CLICore** | Git-style command dispatcher | `CLIDispatcher`, `SourceDetector`, `CreateCommand` |
-| **Scrapers** | 17 source-type extractors | `DocToSkillConverter`, `GitHubScraper`, `UnifiedScraper` |
+| **Scrapers** | 18 source-type extractors | `DocToSkillConverter`, `GitHubScraper`, `UnifiedScraper` |
 | **Adaptors** | 20+ output platform formats | `SkillAdaptor` (ABC), `ClaudeAdaptor`, `LangChainAdaptor` |
 | **Analysis** | C3.x codebase analysis pipeline | `UnifiedCodebaseAnalyzer`, `PatternRecognizer`, 10 GoF detectors |
 | **Enhancement** | AI-powered skill improvement via `AgentClient` | `AgentClient`, `AIEnhancer`, `UnifiedEnhancer`, `WorkflowEngine` |
@@ -1006,11 +1008,14 @@ In Claude Code, just ask:
 
 ## 🤖 Installing to AI Agents
 
-Skill Seekers can automatically install skills to 18 AI coding agents.
+Skill Seekers can automatically install skills to 19 AI coding agents.
 
 ```bash
 # Install to specific agent
 skill-seekers install-agent output/react/ --agent cursor
+
+# Install to IBM Bob (project-local .bob/skills/)
+skill-seekers install-agent output/react/ --agent bob
 
 # Install to all agents at once
 skill-seekers install-agent output/react/ --agent all
@@ -1037,6 +1042,7 @@ skill-seekers install-agent output/react/ --agent cursor --dry-run
 | **Kilo Code** | `.kilo/skills/` | Project |
 | **Continue** | `~/.continue/skills/` | Global |
 | **Kimi Code** | `~/.kimi/skills/` | Global |
+| **IBM Bob** | `.bob/skills/` | Project |
 
 ---
 

@@ -9,6 +9,7 @@ import logging
 import argparse
 from typing import Any
 
+from skill_seekers.cli.defaults import DEFAULTS
 from skill_seekers.cli.source_detector import SourceDetector, SourceInfo
 from skill_seekers.cli.execution_context import ExecutionContext
 from skill_seekers.cli.skill_converter import get_converter
@@ -228,9 +229,18 @@ class CreateCommand:
                     "local_repo_path": getattr(self.args, "local_repo_path", None),
                     "include_issues": getattr(self.args, "include_issues", True),
                     "max_issues": getattr(self.args, "max_issues", 100),
+                    "max_comments": getattr(self.args, "max_comments", 0),
+                    "per_issue_files": getattr(self.args, "per_issue_files", False),
+                    "issue_labels": (
+                        [lab.strip() for lab in self.args.issue_labels.split(",") if lab.strip()]
+                        if getattr(self.args, "issue_labels", None)
+                        else []
+                    ),
+                    "issue_state": getattr(self.args, "issue_state", None) or "all",
+                    "issue_since": getattr(self.args, "since", None),
                     "include_changelog": getattr(self.args, "include_changelog", True),
                     "include_releases": getattr(self.args, "include_releases", True),
-                    "include_code": getattr(self.args, "include_code", False),
+                    "include_code": getattr(self.args, "include_code", True),
                 }
             )
             config_path = getattr(self.args, "config", None)
@@ -347,7 +357,7 @@ class CreateCommand:
                     "space_key": getattr(self.args, "space_key", ""),
                     "username": getattr(self.args, "username", ""),
                     "token": getattr(self.args, "token", ""),
-                    "max_pages": getattr(self.args, "max_pages", 500),
+                    "max_pages": getattr(self.args, "max_pages", DEFAULTS["scraping"]["max_pages"]),
                 }
             )
 
@@ -358,7 +368,7 @@ class CreateCommand:
                     "database_id": getattr(self.args, "database_id", None),
                     "page_id": getattr(self.args, "page_id", None),
                     "token": getattr(self.args, "notion_token", None),
-                    "max_pages": getattr(self.args, "max_pages", 100),
+                    "max_pages": getattr(self.args, "max_pages", DEFAULTS["scraping"]["max_pages"]),
                 }
             )
 
@@ -416,12 +426,21 @@ class CreateCommand:
             )
 
             if client.mode == "api" and client.client:
-                from skill_seekers.cli.enhance_skill import enhance_skill_md
+                from skill_seekers.cli.adaptors import get_adaptor
+                from skill_seekers.cli.agent_client import PROVIDER_TARGET_MAP
 
                 api_key = ctx.enhancement.api_key or client.api_key
                 if api_key:
-                    enhance_skill_md(skill_dir, api_key)
-                    logger.info("API enhancement complete!")
+                    target = PROVIDER_TARGET_MAP.get(client.provider or "", "claude")
+                    adaptor = get_adaptor(target)
+                    if adaptor.supports_enhancement():
+                        success = adaptor.enhance(Path(skill_dir), api_key)
+                        if success:
+                            logger.info("API enhancement complete! (%s)", adaptor.PLATFORM_NAME)
+                        else:
+                            logger.warning("API enhancement did not complete")
+                    else:
+                        logger.warning("%s does not support AI enhancement", adaptor.PLATFORM_NAME)
                 else:
                     logger.warning("No API key available for enhancement")
             else:
